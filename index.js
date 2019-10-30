@@ -13,10 +13,11 @@ const generateItemElement = function (item) {
   let itemTitle = `<span class='shopping-item shopping-item__checked'>${item.name}</span>`;
   if (!item.checked) {
     itemTitle = `
-     <span class='shopping-item'>${item.name}</span>
+    <form class="js-edit-item">
+      <input class="shopping-item" type="text" value="${item.name}" />
+    </form>
     `;
   }
-
   return `
     <li class='js-item-element' data-item-id='${item.id}'>
       ${itemTitle}
@@ -27,12 +28,7 @@ const generateItemElement = function (item) {
         <button class='shopping-item-delete js-item-delete'>
           <span class='button-label'>delete</span>
         </button>
-        <form id='shopping-item-change'>
-          <label for="item-name-change">Change Item Name</label>
-          <input type="text" name="item-name-change" class="${item.id}">
-          <button type="submit">Change Item</button>
-        </form>
-      </div>
+      </div> 
     </li>`;
 };
 
@@ -71,6 +67,8 @@ const render = function () {
 const addItemToShoppingList = function (itemName) {
   store.items.push({ id: cuid(), name: itemName, checked: false });
 };
+
+
 
 const handleNewItemSubmit = function () {
   $('#js-shopping-list-form').submit(function (event) {
@@ -151,26 +149,22 @@ const handleToggleFilterClick = function () {
   });
 };
 
-//user can edit the title of an item
-const handleChangeItem = function() {
-  $('.js-shopping-list').on('submit','#shopping-item-change', function (event) {
+const editListItem = function (id, name) {
+  const item = store.items.find(item => item.id === id);
+  item.name = name;
+};
+
+//needs a new function in which you can addItemToShoppingList using the edit function
+const handleItemNameChange = function () {
+  $('.js-shopping-list').on('submit', '.js-edit-item', event => {
     event.preventDefault();
-    const newItemName = $(`.${getItemIdFromElement(event.currentTarget)}`).val();
-    changeItemName(getItemIdFromElement(event.currentTarget), newItemName);
+    const id = getItemIdFromElement(event.currentTarget);
+    const name =$(event.currentTarget).find('.shopping-item').val();
+    editListItem(id, name);
     render();
   });
 };
 
-const changeItemName = function(id, newName) {
-  store.items.forEach(function(e){
-    if(e.id === id){
-      e.name = newName;
-    }
-  });
-};
-//user can press a button on an item labeled "change item"
-//get new name(?)
-//with the new name, change the name of the item in the store and rerender the page
 
 /**
  * This function will be our callback when the
@@ -186,8 +180,9 @@ const handleShoppingList = function () {
   handleNewItemSubmit();
   handleItemCheckClicked();
   handleDeleteItemClicked();
+  handleItemNameChange();
   handleToggleFilterClick();
-  handleChangeItem();
+  handleItemNameChange();
 };
 
 // when the page loads, call `handleShoppingList`
